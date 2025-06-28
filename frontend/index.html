@@ -1,0 +1,1393 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>☁️ Weather Onchain Logger with AI</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.14.4/dist/ethers.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #1b2638; /* updated color */
+  position: relative;
+  overflow-x: hidden;
+  transition: all 0.8s ease;
+}
+
+    /* Weather Background Animations */
+    .weather-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: -1;
+  overflow: hidden;
+  /* Add this line: */
+  background-color: #1b2638;
+}
+    /* Sunny Background */
+    .sunny-bg {
+      background: linear-gradient(45deg, #87CEEB 0%, #98D8E8 100%);
+    }
+
+    .sun {
+      position: absolute;
+      top: 10%;
+      right: 10%;
+      width: 120px;
+      height: 120px;
+      background: radial-gradient(circle, #FFD700 0%, #FFA500 100%);
+      border-radius: 50%;
+      animation: sunGlow 3s ease-in-out infinite alternate;
+      box-shadow: 0 0 50px rgba(255, 215, 0, 0.6);
+    }
+
+    .sun::before {
+      content: '';
+      position: absolute;
+      top: -30px;
+      left: -30px;
+      right: -30px;
+      bottom: -30px;
+      border-radius: 50%;
+      background: conic-gradient(transparent 0deg, rgba(255, 215, 0, 0.3) 45deg, transparent 90deg, rgba(255, 215, 0, 0.3) 135deg, transparent 180deg, rgba(255, 215, 0, 0.3) 225deg, transparent 270deg, rgba(255, 215, 0, 0.3) 315deg, transparent 360deg);
+      animation: sunRays 8s linear infinite;
+    }
+
+    @keyframes sunGlow {
+      0% { transform: scale(1); }
+      100% { transform: scale(1.1); }
+    }
+
+    @keyframes sunRays {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Cloudy Background */
+    .cloudy-bg {
+      background: linear-gradient(45deg, #B0C4DE 0%, #D3D3D3 100%);
+    }
+
+    .cloud {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 50px;
+      opacity: 0.8;
+      animation: cloudFloat 15s ease-in-out infinite;
+    }
+
+    .cloud:before {
+      content: '';
+      position: absolute;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 50px;
+    }
+
+    .cloud1 {
+      width: 80px;
+      height: 30px;
+      top: 20%;
+      left: 10%;
+      animation-delay: 0s;
+    }
+
+    .cloud1:before {
+      width: 50px;
+      height: 50px;
+      top: -25px;
+      left: 10px;
+    }
+
+    .cloud2 {
+      width: 60px;
+      height: 25px;
+      top: 30%;
+      right: 20%;
+      animation-delay: -5s;
+    }
+
+    .cloud2:before {
+      width: 40px;
+      height: 40px;
+      top: -20px;
+      right: 15px;
+    }
+
+    .cloud3 {
+      width: 70px;
+      height: 28px;
+      top: 50%;
+      left: 60%;
+      animation-delay: -10s;
+    }
+
+    .cloud3:before {
+      width: 45px;
+      height: 45px;
+      top: -22px;
+      left: 12px;
+    }
+
+    @keyframes cloudFloat {
+      0%, 100% { transform: translateX(0px) translateY(0px); }
+      25% { transform: translateX(20px) translateY(-10px); }
+      50% { transform: translateX(-10px) translateY(5px); }
+      75% { transform: translateX(15px) translateY(-5px); }
+    }
+
+    /* Rainy Background */
+    .rainy-bg {
+      background: linear-gradient(45deg, #4682B4 0%, #2F4F4F 100%);
+    }
+
+    .rain {
+      position: absolute;
+      width: 2px;
+      background: linear-gradient(to bottom, transparent, rgba(173, 216, 230, 0.8));
+      animation: rainFall linear infinite;
+    }
+
+    @keyframes rainFall {
+      0% { top: -100px; opacity: 1; }
+      100% { top: 100vh; opacity: 0; }
+    }
+
+    /* Misty Background */
+    .misty-bg {
+      background: linear-gradient(45deg, #C0C0C0 0%, #DCDCDC 100%);
+    }
+
+    .mist {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: 
+        radial-gradient(ellipse at 20% 30%, rgba(255, 255, 255, 0.3) 0%, transparent 40%),
+        radial-gradient(ellipse at 80% 60%, rgba(255, 255, 255, 0.2) 0%, transparent 35%),
+        radial-gradient(ellipse at 40% 80%, rgba(255, 255, 255, 0.25) 0%, transparent 45%);
+      animation: mistMove 20s ease-in-out infinite;
+    }
+
+    @keyframes mistMove {
+      0%, 100% { opacity: 0.6; transform: translateY(0px); }
+      50% { opacity: 0.3; transform: translateY(-20px); }
+    }
+
+    /* Storm Background */
+    .storm-bg {
+      background: linear-gradient(45deg, #2F2F2F 0%, #191970 100%);
+    }
+
+    .lightning {
+      position: absolute;
+      width: 4px;
+      height: 200px;
+      background: linear-gradient(to bottom, #FFD700, transparent);
+      top: 0;
+      animation: lightningFlash 3s ease-in-out infinite;
+      opacity: 0;
+    }
+
+    @keyframes lightningFlash {
+      0%, 90%, 100% { opacity: 0; }
+      5%, 15% { opacity: 1; }
+    }
+
+    h1 {
+      color: #ebebe9;
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 2.2em;
+      position: relative;
+      z-index: 10;
+    }
+
+    .input-container, .ai-container {
+      background-color: rgba(29, 41, 58, 0.9);
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+      backdrop-filter: blur(5px);
+      position: relative;
+      z-index: 10;
+    }
+
+    .ai-container {
+      border: 2px solid #4a90e2;
+      position: relative;
+    }
+
+    .ai-badge {
+      position: absolute;
+      top: -10px;
+      left: 20px;
+      background: linear-gradient(45deg, #4a90e2, #7b68ee);
+      color: white;
+      padding: 5px 12px;
+      border-radius: 15px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    /* Autocomplete Styles */
+    .autocomplete-container {
+      position: relative;
+      display: block;
+      width: 100%;
+      margin-bottom: 15px;
+    }
+
+    .autocomplete-suggestions {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background-color: rgba(39, 51, 70, 0.95);
+      border: 1px solid #4a90e2;
+      border-top: none;
+      border-radius: 0 0 5px 5px;
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 1000;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      backdrop-filter: blur(5px);
+    }
+
+    .suggestion-item {
+      padding: 12px;
+      cursor: pointer;
+      border-bottom: 1px solid #253243;
+      color: #e5e3e3;
+      transition: background-color 0.2s;
+    }
+
+    .suggestion-item:hover,
+    .suggestion-item.highlighted {
+      background-color: #4a90e2;
+      color: white;
+    }
+
+    .suggestion-item:last-child {
+      border-bottom: none;
+    }
+
+    .city-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .city-name {
+      font-weight: bold;
+    }
+
+    .city-country {
+      font-size: 0.9em;
+      color: #a0aec0;
+    }
+
+    input, textarea {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      border: 1px solid #223042;
+      border-radius: 5px;
+      font-size: 16px;
+      box-sizing: border-box;
+      background-color: rgba(39, 51, 70, 0.8);
+      color: #ffffff;
+      resize: vertical;
+      backdrop-filter: blur(5px);
+    }
+
+    textarea {
+      min-height: 100px;
+      font-family: inherit;
+    }
+
+    button {
+      background-color: #2d6bd2;
+      color: #fefffd;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      width: 100%;
+      transition: background-color 0.3s;
+      margin-bottom: 10px;
+    }
+
+    .ai-button {
+      background: linear-gradient(45deg, #4a90e2, #7b68ee);
+    }
+
+    .ai-button:hover {
+      background: linear-gradient(45deg, #357abd, #6a5acd);
+    }
+
+    button:hover {
+      background-color: #245fb8;
+    }
+
+    hr {
+      border: none;
+      height: 1px;
+      background-color: #253243;
+      margin: 30px 0;
+    }
+
+    h2, h3 {
+      color: #e5e3e3;
+      margin-bottom: 15px;
+      font-size: 1.5em;
+      position: relative;
+      z-index: 10;
+    }
+
+    h3 {
+      font-size: 1.2em;
+      margin-top: 25px;
+    }
+
+    .weather-container, .ai-response {
+      background-color: rgba(29, 41, 58, 0.9);
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      border: 1px solid #253243;
+      overflow: hidden;
+      margin-bottom: 20px;
+      backdrop-filter: blur(5px);
+      position: relative;
+      z-index: 10;
+    }
+
+    .ai-response {
+      padding: 20px;
+      color: #e5e3e3;
+      line-height: 1.6;
+      border: 1px solid #4a90e2;
+    }
+
+    .chart-container {
+      padding: 20px;
+      border-bottom: 1px solid #253243;
+    }
+
+    .logs-container {
+      padding: 20px;
+      color: #e5e3e3;
+      min-height: 100px;
+    }
+
+    .logs-container:empty::before {
+      content: "No weather data submitted yet. Enter a city above to get started!";
+      color: #a0aec0;
+      font-style: italic;
+      display: block;
+    }
+
+    .log-entry {
+      padding: 12px 0;
+      border-bottom: 1px solid #253243;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .log-entry:last-child {
+      border-bottom: none;
+    }
+
+    .log-entry img {
+      width: 32px;
+      height: 32px;
+    }
+
+    .log-entry small {
+      color: #a0aec0;
+      font-size: 0.85em;
+    }
+
+    .prediction-card {
+      background: linear-gradient(135deg, rgba(29, 41, 58, 0.9), rgba(37, 50, 67, 0.9));
+      border: 1px solid #4a90e2;
+      border-radius: 8px;
+      padding: 15px;
+      margin: 10px 0;
+      backdrop-filter: blur(5px);
+    }
+
+    .prediction-title {
+      color: #4a90e2;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    .loading {
+      color: #4a90e2;
+      font-style: italic;
+    }
+
+    input:focus, textarea:focus {
+      background-color: rgba(38, 51, 68, 0.9) !important;
+      border-color: #4a90e2 !important;
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.3);
+    }
+
+    input::placeholder, textarea::placeholder {
+      color: #a0aec0;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+
+    @media (max-width: 768px) {
+      .two-col {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Dynamic Weather Background -->
+  <div class="weather-background" id="weatherBackground">
+    <!-- Weather elements will be added here dynamically -->
+  </div>
+
+  <h1 class="text-2xl md:text-3xl text-center text-[#ebebe9] mb-6 font-semibold">
+  ☁️ Onchain Weather Logger with AI
+</h1>
+
+  <div class="input-container">
+   <div class="autocomplete-container">
+     <input type="text" id="cityInput" placeholder="Enter City" autocomplete="off">
+     <div id="citySuggestions" class="autocomplete-suggestions" style="display: none;"></div>
+   </div>
+   <input type="text" id="weatherInput" placeholder="(Auto-filled from API)">
+   <input type="text" id="filterInput" placeholder="Filter by city or condition">
+   <button id="submitBtn">Submit Weather</button>
+  </div>
+
+  <!-- AI Features Section -->
+  <div class="ai-container">
+    <div class="ai-badge">🤖 AI POWERED</div>
+    <h3>Weather AI Assistant</h3>
+
+    <div class="two-col">
+      <button id="predictBtn" class="ai-button">🔮 Get Weather Prediction</button>
+      <button id="analyzeBtn" class="ai-button">📊 Analyze Weather Patterns</button>
+    </div>
+
+    <textarea id="aiQuestion" placeholder="Ask me anything about weather... (e.g., 'What should I wear today?', 'Will it rain this week?', 'Best time to go outside?')"></textarea>
+    <button id="askAiBtn" class="ai-button">💬 Ask Weather AI</button>
+  </div>
+
+  <!-- AI Response Section -->
+  <div id="aiResponseSection" style="display: none;">
+    <h3>🤖 AI Response:</h3>
+    <div class="ai-response" id="aiResponse"></div>
+  </div>
+
+  <hr>
+
+  <h2>📋 Weather Logs:</h2>
+  <div class="weather-container">
+    <div class="chart-container">
+    </div>
+    <div class="w-full h-64">
+      <canvas id="weatherChart" class="w-full h-full"></canvas>
+    </div>
+    <div class="logs-container" id="weatherLogs"></div>
+  </div>
+
+  <script>
+    const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+    const abi = [
+      {
+        "inputs": [
+          { "internalType": "string", "name": "_city", "type": "string" },
+          { "internalType": "string", "name": "_condition", "type": "string" }
+        ],
+        "name": "setWeather",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "getWeatherCount",
+        "outputs": [
+          { "internalType": "uint256", "name": "", "type": "uint256" }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "uint256", "name": "index", "type": "uint256" }
+        ],
+        "name": "getWeatherByIndex",
+        "outputs": [
+          { "internalType": "string", "name": "", "type": "string" },
+          { "internalType": "string", "name": "", "type": "string" },
+          { "internalType": "uint256", "name": "", "type": "uint256" },
+          { "internalType": "address", "name": "", "type": "address" }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      }
+    ];
+
+    // DOM Elements
+    const submitBtn = document.getElementById('submitBtn');
+    const filterInput = document.getElementById('filterInput');
+    const predictBtn = document.getElementById('predictBtn');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const askAiBtn = document.getElementById('askAiBtn');
+    const aiQuestion = document.getElementById('aiQuestion');
+    const aiResponseSection = document.getElementById('aiResponseSection');
+    const aiResponse = document.getElementById('aiResponse');
+    const cityInput = document.getElementById('cityInput');
+    const citySuggestions = document.getElementById('citySuggestions');
+    const weatherBackground = document.getElementById('weatherBackground');
+
+    // Event Listeners
+    submitBtn.addEventListener('click', submitWeather);
+    filterInput.addEventListener('input', filterLogs);
+    predictBtn.addEventListener('click', getWeatherPrediction);
+    analyzeBtn.addEventListener('click', analyzeWeatherPatterns);
+    askAiBtn.addEventListener('click', askWeatherAI);
+
+    let allLogs = [];
+    let weatherChart = null;
+    let currentWeatherData = null;
+    let selectedSuggestionIndex = -1;
+    let searchTimeout = null;
+
+    // Weather Background Functions
+    function updateWeatherBackground(condition) {
+      // Clear previous background
+      weatherBackground.innerHTML = '';
+      weatherBackground.className = 'weather-background';
+
+      const baseCondition = condition.toLowerCase();
+
+      if (baseCondition.includes('clear') || baseCondition.includes('sunny')) {
+        setSunnyBackground();
+      } else if (baseCondition.includes('cloud')) {
+        setCloudyBackground();
+      } else if (baseCondition.includes('rain')) {
+        setRainyBackground();
+      } else if (baseCondition.includes('mist') || baseCondition.includes('fog')) {
+        setMistyBackground();
+      } else if (baseCondition.includes('storm') || baseCondition.includes('thunder')) {
+        setStormyBackground();
+      } else {
+        setDefaultBackground();
+      }
+    }
+
+    function setSunnyBackground() {
+      weatherBackground.classList.add('sunny-bg');
+      const sun = document.createElement('div');
+      sun.className = 'sun';
+      weatherBackground.appendChild(sun);
+    }
+
+    function setCloudyBackground() {
+      weatherBackground.classList.add('cloudy-bg');
+      
+      // Create multiple clouds
+      for (let i = 1; i <= 3; i++) {
+        const cloud = document.createElement('div');
+        cloud.className = `cloud cloud${i}`;
+        weatherBackground.appendChild(cloud);
+      }
+    }
+
+    function setRainyBackground() {
+      weatherBackground.classList.add('rainy-bg');
+      
+      // Create rain drops
+      for (let i = 0; i < 50; i++) {
+        const rain = document.createElement('div');
+        rain.className = 'rain';
+        rain.style.left = Math.random() * 100 + '%';
+        rain.style.height = (Math.random() * 100 + 50) + 'px';
+        rain.style.animationDuration = (Math.random() * 1 + 0.5) + 's';
+        rain.style.animationDelay = Math.random() * 2 + 's';
+        weatherBackground.appendChild(rain);
+      }
+
+      // Add some clouds too
+      for (let i = 1; i <= 2; i++) {
+        const cloud = document.createElement('div');
+        cloud.className = `cloud cloud${i}`;
+        cloud.style.opacity = '0.6';
+        weatherBackground.appendChild(cloud);
+      }
+    }
+
+    function setMistyBackground() {
+      weatherBackground.classList.add('misty-bg');
+      const mist = document.createElement('div');
+      mist.className = 'mist';
+      weatherBackground.appendChild(mist);
+    }
+
+    function setStormyBackground() {
+      weatherBackground.classList.add('storm-bg');
+      
+      // Add lightning
+      for (let i = 0; i < 3; i++) {
+        const lightning = document.createElement('div');
+        lightning.className = 'lightning';
+        lightning.style.left = Math.random() * 80 + 10 + '%';
+        lightning.style.animationDelay = Math.random() * 3 + 's';
+        weatherBackground.appendChild(lightning);
+      }
+
+      // Add rain for storm
+      for (let i = 0; i < 30; i++) {
+        const rain = document.createElement('div');
+        rain.className = 'rain';
+        rain.style.left = Math.random() * 100 + '%';
+        rain.style.height = (Math.random() * 80 + 40) + 'px';
+        rain.style.animationDuration = (Math.random() * 0.5 + 0.3) + 's';
+        rain.style.animationDelay = Math.random() * 2 + 's';
+        weatherBackground.appendChild(rain);
+      }
+    }
+
+      function setDefaultBackground() {
+      function setDefaultBackground() {
+      weatherBackground.className = 'weather-background';
+      weatherBackground.innerHTML = '';
+}
+    }
+
+    // City Autocomplete functionality
+    cityInput.addEventListener('input', handleCityInput);
+    cityInput.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('click', handleDocumentClick);
+
+    function handleCityInput(e) {
+      const query = e.target.value.trim();
+      
+      // Clear previous timeout
+      if (searchTimeout) {
+        clearTimeout(searchTimeout);
+      }
+
+      if (query.length < 2) {
+        hideSuggestions();
+        return;
+      }
+
+      // Debounce the search to avoid too many API calls
+      searchTimeout = setTimeout(() => {
+        searchCities(query);
+      }, 300);
+    }
+
+    function handleKeyDown(e) {
+      const suggestions = citySuggestions.querySelectorAll('.suggestion-item');
+      
+      if (suggestions.length === 0) return;
+
+      switch (e.key) {
+        case 'ArrowDown':
+          e.preventDefault();
+          selectedSuggestionIndex = Math.min(selectedSuggestionIndex + 1, suggestions.length - 1);
+          updateHighlight(suggestions);
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          selectedSuggestionIndex = Math.max(selectedSuggestionIndex - 1, 0);
+          updateHighlight(suggestions);
+          break;
+        case 'Enter':
+          e.preventDefault();
+          if (selectedSuggestionIndex >= 0) {
+            selectSuggestion(suggestions[selectedSuggestionIndex]);
+          }
+          break;
+        case 'Escape':
+          hideSuggestions();
+          break;
+      }
+    }
+
+    function updateHighlight(suggestions) {
+      suggestions.forEach((suggestion, index) => {
+        if (index === selectedSuggestionIndex) {
+          suggestion.classList.add('highlighted');
+        } else {
+          suggestion.classList.remove('highlighted');
+        }
+      });
+    }
+
+    function handleDocumentClick(e) {
+      if (!cityInput.contains(e.target) && !citySuggestions.contains(e.target)) {
+        hideSuggestions();
+      }
+    }
+
+    async function searchCities(query) {
+      const apiKey = "c52357f1f209ec412fa33d8fa45002a4";
+      const url = `http://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(query)}&limit=5&appid=${apiKey}`;
+
+      try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("Failed to fetch cities");
+        
+        const cities = await response.json();
+        displaySuggestions(cities);
+      } catch (error) {
+        console.error("Error searching cities:", error);
+        hideSuggestions();
+      }
+    }
+
+    function displaySuggestions(cities) {
+      if (cities.length === 0) {
+        hideSuggestions();
+        return;
+      }
+
+      selectedSuggestionIndex = -1;
+      citySuggestions.innerHTML = '';
+
+      cities.forEach((city, index) => {
+        const suggestionItem = document.createElement('div');
+        suggestionItem.className = 'suggestion-item';
+        suggestionItem.innerHTML = `
+          <div class="city-info">
+            <div>
+              <div class="city-name">${city.name}</div>
+              <div class="city-country">${city.state ? city.state + ', ' : ''}${city.country}</div>
+            </div>
+          </div>
+        `;
+
+        suggestionItem.addEventListener('click', () => selectSuggestion(suggestionItem));
+        suggestionItem.addEventListener('mouseenter', () => {
+          selectedSuggestionIndex = index;
+          updateHighlight(citySuggestions.querySelectorAll('.suggestion-item'));
+        });
+
+        // Store city data for selection
+        suggestionItem.cityData = city;
+        citySuggestions.appendChild(suggestionItem);
+      });
+
+      citySuggestions.style.display = 'block';
+    }
+
+    function selectSuggestion(suggestionElement) {
+      const cityData = suggestionElement.cityData;
+      cityInput.value = cityData.name;
+      hideSuggestions();
+      
+      // Optionally fetch weather data immediately
+      fetchLiveWeather(cityData.name).then(weatherData => {
+        document.getElementById("weatherInput").value = `${weatherData.condition} (${weatherData.temp}°C)`;
+        currentWeatherData = { ...weatherData, city: cityData.name };
+        // Update background based on weather
+        updateWeatherBackground(weatherData.condition);
+      }).catch(error => {
+        console.error("Error fetching weather:", error);
+      });
+    }
+
+    function hideSuggestions() {
+      citySuggestions.style.display = 'none';
+      selectedSuggestionIndex = -1;
+    }
+
+    async function submitWeather() {
+      const city = document.getElementById("cityInput").value.trim();
+      const weatherData = await fetchLiveWeather(city);
+      currentWeatherData = { ...weatherData, city }; // Store for AI features
+      document.getElementById("weatherInput").value = `${weatherData.condition} (${weatherData.temp}°C)`;
+
+      // Update background based on weather condition
+      updateWeatherBackground(weatherData.condition);
+
+      if (!city || !weatherData.condition) {
+        alert("Please enter both city and weather condition.");
+        return;
+      }
+
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const contract = new ethers.Contract(contractAddress, abi, signer);
+
+      const conditionWithTemp = `${weatherData.condition} - ${weatherData.temp}°C`;
+      const tx = await contract.setWeather(city, conditionWithTemp);
+      await tx.wait();
+
+      alert("✅ Weather submitted!");
+      await loadWeatherLogs();
+    }
+
+    async function fetchLiveWeather(city) {
+      const apiKey = "c52357f1f209ec412fa33d8fa45002a4";
+      const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`;
+
+      try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("City not found.");
+        const data = await response.json();
+        return {
+          condition: data.weather[0].main,
+          description: data.weather[0].description,
+          temp: Math.round(data.main.temp),
+          humidity: data.main.humidity,
+          windSpeed: data.wind?.speed || 0,
+          pressure: data.main.pressure
+        };
+      } catch (error) {
+        alert("❌ Error fetching weather data: " + error.message);
+        throw error;
+      }
+    }
+
+    // AI FEATURES
+
+    async function getWeatherPrediction() {
+      if (!currentWeatherData) {
+        alert("Please submit weather data first to get predictions!");
+        return;
+      }
+
+      showAiResponse("🔮 Generating weather prediction...", true);
+
+      // Simulate AI prediction based on current weather data
+      setTimeout(() => {
+        const prediction = generateWeatherPrediction(currentWeatherData);
+        showAiResponse(prediction);
+      }, 2000);
+    }
+
+    function generateWeatherPrediction(weatherData) {
+      const predictions = {
+        'Clear': [
+          `🌞 Based on current clear conditions in ${weatherData.city}, expect continued sunny weather for the next 2-3 hours.`,
+          `☀️ Perfect weather for outdoor activities! UV levels may be high, consider sunscreen.`,
+          `🌤️ Temperature likely to rise by 2-3°C in the afternoon. Stay hydrated!`
+        ],
+        'Clouds': [
+          `☁️ Cloudy conditions in ${weatherData.city} suggest possible light rain within 1-2 hours.`,
+          `🌥️ Cloud cover will likely increase. Temperature may drop by 1-2°C.`,
+          `⛅ Partly cloudy skies expected to continue. Good time for outdoor walks!`
+        ],
+        'Rain': [
+          `🌧️ Current rain in ${weatherData.city} expected to continue for 30-60 minutes.`,
+          `☔ Heavy showers possible. Carry an umbrella and avoid outdoor activities.`,
+          `🌦️ Rain may clear up in 2-3 hours, followed by cloudy skies.`
+        ],
+        'Snow': [
+          `❄️ Snow conditions in ${weatherData.city} may intensify. Expect 2-4 inches.`,
+          `🌨️ Temperature will remain below freezing. Drive carefully!`,
+          `⛄ Beautiful snowy weather! Perfect for winter activities.`
+        ],
+        'Thunderstorm': [
+          `⛈️ Thunderstorm activity in ${weatherData.city} - seek shelter immediately!`,
+          `🌩️ Severe weather expected for next 1-2 hours. Avoid outdoor activities.`,
+          `⚡ Lightning risk high. Stay indoors until conditions improve.`
+        ],
+        'Mist': [
+          `🌫️ Misty conditions in ${weatherData.city} will likely clear within 1-2 hours.`,
+          `👁️ Visibility is reduced. Drive with caution and use fog lights.`,
+          `🌬️ Mist may turn into light drizzle. Keep a light jacket handy.`
+        ]
+      };
+
+      const conditionPredictions = predictions[weatherData.condition] || [
+        `🌤️ Current weather in ${weatherData.city}: ${weatherData.condition}`,
+        `📊 Temperature: ${weatherData.temp}°C, Humidity: ${weatherData.humidity}%`,
+        `🔮 Weather patterns suggest stable conditions for the next few hours.`
+      ];
+
+      const randomPrediction = conditionPredictions[Math.floor(Math.random() * conditionPredictions.length)];
+      
+      return `
+        <div class="prediction-card">
+          <div class="prediction-title">🔮 Weather Prediction for ${weatherData.city}</div>
+          <p>${randomPrediction}</p>
+          <hr style="margin: 10px 0; border-color: #4a90e2;">
+          <small><strong>Current Conditions:</strong></small><br>
+          <small>🌡️ Temperature: ${weatherData.temp}°C</small><br>
+          <small>💧 Humidity: ${weatherData.humidity}%</small><br>
+          <small>💨 Wind Speed: ${weatherData.windSpeed} m/s</small><br>
+          <small>📊 Pressure: ${weatherData.pressure} hPa</small>
+        </div>
+      `;
+    }
+
+    async function analyzeWeatherPatterns() {
+      if (allLogs.length === 0) {
+        alert("No weather data available for analysis. Please submit some weather data first!");
+        return;
+      }
+
+      showAiResponse("📊 Analyzing weather patterns...", true);
+
+      setTimeout(() => {
+        const analysis = generateWeatherAnalysis();
+        showAiResponse(analysis);
+      }, 1500);
+    }
+
+    function generateWeatherAnalysis() {
+      const cityCount = {};
+      const conditionCount = {};
+      let totalEntries = allLogs.length;
+
+      allLogs.forEach(log => {
+        cityCount[log.city] = (cityCount[log.city] || 0) + 1;
+        const condition = log.condition.split(' ')[0]; // Get main condition
+        conditionCount[condition] = (conditionCount[condition] || 0) + 1;
+      });
+
+      const mostLoggedCity = Object.keys(cityCount).reduce((a, b) => 
+        cityCount[a] > cityCount[b] ? a : b
+      );
+
+      const mostCommonCondition = Object.keys(conditionCount).reduce((a, b) => 
+        conditionCount[a] > conditionCount[b] ? a : b
+      );
+
+      return `
+        <div class="prediction-card">
+          <div class="prediction-title">📊 Weather Pattern Analysis</div>
+          <p><strong>📈 Total Weather Entries:</strong> ${totalEntries}</p>
+          <p><strong>🏙️ Most Logged City:</strong> ${mostLoggedCity} (${cityCount[mostLoggedCity]} entries)</p>
+          <p><strong>🌤️ Most Common Condition:</strong> ${mostCommonCondition} (${conditionCount[mostCommonCondition]} occurrences)</p>
+          
+          <hr style="margin: 15px 0; border-color: #4a90e2;">
+          
+          <div class="prediction-title">🌍 City Distribution:</div>
+          ${Object.entries(cityCount).map(([city, count]) => 
+            `<small>📍 ${city}: ${count} entries (${Math.round(count/totalEntries*100)}%)</small>`
+          ).join('<br>')}
+          
+          <hr style="margin: 15px 0; border-color: #4a90e2;">
+          
+          <div class="prediction-title">⛅ Weather Condition Distribution:</div>
+          ${Object.entries(conditionCount).map(([condition, count]) => 
+            `<small>🌤️ ${condition}: ${count} occurrences (${Math.round(count/totalEntries*100)}%)</small>`
+          ).join('<br>')}
+        </div>
+      `;
+    }
+
+    async function askWeatherAI() {
+      const question = aiQuestion.value.trim();
+      if (!question) {
+        alert("Please enter a question about weather!");
+        return;
+      }
+
+      showAiResponse("💬 AI is thinking...", true);
+
+      setTimeout(() => {
+        const response = generateAIResponse(question);
+        showAiResponse(response);
+        aiQuestion.value = ''; // Clear the question
+      }, 2000);
+    }
+
+    function generateAIResponse(question) {
+      const lowerQuestion = question.toLowerCase();
+      
+      // Weather advice responses
+      if (lowerQuestion.includes('wear') || lowerQuestion.includes('clothing') || lowerQuestion.includes('dress')) {
+        if (!currentWeatherData) {
+          return `<div class="prediction-card">
+            <div class="prediction-title">👗 Clothing Advice</div>
+            <p>I'd love to help you choose what to wear! Please enter a city first so I can check the current weather conditions and give you personalized clothing recommendations.</p>
+          </div>`;
+        }
+        
+        return generateClothingAdvice(currentWeatherData);
+      }
+      
+      // Activity recommendations
+      if (lowerQuestion.includes('activity') || lowerQuestion.includes('do') || lowerQuestion.includes('outside')) {
+        if (!currentWeatherData) {
+          return `<div class="prediction-card">
+            <div class="prediction-title">🎯 Activity Recommendations</div>
+            <p>I can suggest great activities based on weather! Please submit weather data for a city first, and I'll recommend perfect activities for those conditions.</p>
+          </div>`;
+        }
+        
+        return generateActivityAdvice(currentWeatherData);
+      }
+      
+      // Rain predictions
+      if (lowerQuestion.includes('rain') || lowerQuestion.includes('wet')) {
+        return `<div class="prediction-card">
+          <div class="prediction-title">🌧️ Rain Information</div>
+          <p>Based on general weather patterns, rain is most likely when you see:</p>
+          <p>☁️ Dark, heavy clouds building up</p>
+          <p>💨 Increasing wind speeds</p>
+          <p>📉 Dropping atmospheric pressure</p>
+          <p>🌡️ Temperature changes</p>
+          ${currentWeatherData ? `<hr style="margin: 10px 0;"><small>Current conditions in ${currentWeatherData.city}: ${currentWeatherData.condition} - ${currentWeatherData.temp}°C</small>` : ''}
+        </div>`;
+      }
+      
+      // Temperature questions
+      if (lowerQuestion.includes('temperature') || lowerQuestion.includes('hot') || lowerQuestion.includes('cold')) {
+        if (!currentWeatherData) {
+          return `<div class="prediction-card">
+            <div class="prediction-title">🌡️ Temperature Info</div>
+            <p>I can provide detailed temperature information! Enter a city name to get current temperature, feels-like temperature, and temperature-based recommendations.</p>
+          </div>`;
+        }
+        
+        return `<div class="prediction-card">
+          <div class="prediction-title">🌡️ Temperature Analysis for ${currentWeatherData.city}</div>
+          <p><strong>Current Temperature:</strong> ${currentWeatherData.temp}°C</p>
+          <p><strong>Condition:</strong> ${currentWeatherData.condition}</p>
+          <p><strong>Comfort Level:</strong> ${getComfortLevel(currentWeatherData.temp)}</p>
+          <p><strong>Recommendation:</strong> ${getTemperatureAdvice(currentWeatherData.temp)}</p>
+        </div>`;
+      }
+      
+      // General weather questions
+      return `<div class="prediction-card">
+        <div class="prediction-title">🤖 Weather AI Assistant</div>
+        <p>Great question! Here's what I can help you with:</p>
+        <p>🌤️ <strong>Current Weather:</strong> Enter a city to get live weather data</p>
+        <p>👗 <strong>Clothing Advice:</strong> Ask "What should I wear today?"</p>
+        <p>🎯 <strong>Activity Suggestions:</strong> Ask "What should I do outside?"</p>
+        <p>🌧️ <strong>Weather Predictions:</strong> Use the prediction button for forecasts</p>
+        <p>📊 <strong>Pattern Analysis:</strong> Analyze your logged weather data</p>
+        ${currentWeatherData ? `<hr style="margin: 10px 0;"><p><small><strong>Current data:</strong> ${currentWeatherData.city} - ${currentWeatherData.condition}, ${currentWeatherData.temp}°C</small></p>` : ''}
+      </div>`;
+    }
+
+    function generateClothingAdvice(weatherData) {
+      const temp = weatherData.temp;
+      const condition = weatherData.condition.toLowerCase();
+      
+      let advice = '';
+      let emoji = '👕';
+      
+      if (temp < 0) {
+        advice = 'Heavy winter coat, warm layers, gloves, hat, and boots. Stay warm!';
+        emoji = '🧥';
+      } else if (temp < 10) {
+        advice = 'Warm jacket or coat, long pants, closed shoes. Layer up!';
+        emoji = '🧥';
+      } else if (temp < 20) {
+        advice = 'Light jacket or hoodie, long pants, comfortable shoes.';
+        emoji = '🧥';
+      } else if (temp < 25) {
+        advice = 'T-shirt or light shirt, jeans or light pants. Perfect weather!';
+        emoji = '👕';
+      } else if (temp < 30) {
+        advice = 'Light clothing, shorts or light pants, breathable fabrics.';
+        emoji = '👕';
+      } else {
+        advice = 'Very light, breathable clothing, shorts, sandals. Stay cool!';
+        emoji = '🩳';
+      }
+      
+      // Add condition-specific advice
+      if (condition.includes('rain')) {
+        advice += ' Don\'t forget an umbrella or raincoat! ☔';
+      } else if (condition.includes('snow')) {
+        advice += ' Waterproof boots and extra warm layers recommended! ❄️';
+      } else if (condition.includes('clear') || condition.includes('sunny')) {
+        advice += ' Consider sunglasses and sunscreen! ☀️';
+      }
+      
+      return `<div class="prediction-card">
+        <div class="prediction-title">${emoji} Clothing Recommendation for ${weatherData.city}</div>
+        <p><strong>Weather:</strong> ${weatherData.condition}, ${weatherData.temp}°C</p>
+        <p><strong>Suggestion:</strong> ${advice}</p>
+        <hr style="margin: 10px 0;">
+        <small><strong>Humidity:</strong> ${weatherData.humidity}% | <strong>Wind:</strong> ${weatherData.windSpeed} m/s</small>
+      </div>`;
+    }
+
+    function generateActivityAdvice(weatherData) {
+      const temp = weatherData.temp;
+      const condition = weatherData.condition.toLowerCase();
+      
+      let activities = [];
+      let emoji = '🎯';
+      
+      if (condition.includes('clear') || condition.includes('sunny')) {
+        activities = ['☀️ Perfect for hiking or walking', '🏖️ Great beach or park day', '🚴 Ideal for cycling', '🏃 Perfect for jogging', '🧺 Great for picnics'];
+        emoji = '☀️';
+      } else if (condition.includes('cloud')) {
+        activities = ['🚶 Nice for walking', '📸 Great for photography', '🛍️ Good for outdoor shopping', '⛳ Perfect golf weather', '🌳 Ideal for nature walks'];
+        emoji = '☁️';
+      } else if (condition.includes('rain')) {
+        activities = ['☔ Indoor activities recommended', '🏛️ Visit museums or galleries', '📚 Good reading weather', '🎬 Perfect movie day', '🏠 Cozy indoor time'];
+        emoji = '🌧️';
+      } else if (condition.includes('snow')) {
+        activities = ['⛷️ Great for skiing', '⛸️ Perfect for ice skating', '⛄ Build a snowman', '🏠 Warm indoor activities', '📸 Beautiful winter photography'];
+        emoji = '❄️';
+      } else {
+        activities = ['🏠 Check weather conditions first', '🧥 Dress appropriately', '📱 Monitor weather updates', '🚗 Indoor backup plans ready'];
+      }
+      
+      return `<div class="prediction-card">
+        <div class="prediction-title">${emoji} Activity Recommendations for ${weatherData.city}</div>
+        <p><strong>Weather:</strong> ${weatherData.condition}, ${weatherData.temp}°C</p>
+        <p><strong>Recommended Activities:</strong></p>
+        ${activities.map(activity => `<p style="margin: 5px 0;">${activity}</p>`).join('')}
+        <hr style="margin: 10px 0;">
+        <small><strong>Safety Tip:</strong> ${getSafetyTip(condition)}</small>
+      </div>`;
+    }
+
+    function getComfortLevel(temp) {
+      if (temp < 0) return 'Very Cold ❄️';
+      if (temp < 10) return 'Cold 🥶';
+      if (temp < 20) return 'Cool 😊';
+      if (temp < 25) return 'Comfortable 😌';
+      if (temp < 30) return 'Warm 😎';
+      return 'Hot 🥵';
+    }
+
+    function getTemperatureAdvice(temp) {
+      if (temp < 0) return 'Bundle up! Risk of frostbite in exposed skin.';
+      if (temp < 10) return 'Dress warmly to avoid getting cold.';
+      if (temp < 20) return 'Light layers work well for this temperature.';
+      if (temp < 25) return 'Perfect temperature for most activities!';
+      if (temp < 30) return 'Stay hydrated and wear light clothing.';
+      return 'Very hot! Seek shade and drink plenty of water.';
+    }
+
+    function getSafetyTip(condition) {
+      if (condition.includes('rain')) return 'Roads may be slippery. Drive carefully!';
+      if (condition.includes('snow')) return 'Watch for icy conditions. Wear appropriate footwear.';
+      if (condition.includes('clear')) return 'UV levels may be high. Use sun protection.';
+      if (condition.includes('storm')) return 'Avoid outdoor activities during severe weather.';
+      return 'Always check current conditions before heading out.';
+    }
+
+    function showAiResponse(content, isLoading = false) {
+      aiResponseSection.style.display = 'block';
+      if (isLoading) {
+        aiResponse.innerHTML = `<div class="loading">${content}</div>`;
+      } else {
+        aiResponse.innerHTML = content;
+      }
+      aiResponseSection.scrollIntoView({ behavior: 'smooth' });
+    }
+
+  async function loadWeatherLogs() {
+  const provider = new ethers.BrowserProvider(window.ethereum);
+  const contract = new ethers.Contract(contractAddress, abi, provider);
+  const count = Number(await contract.getWeatherCount());
+  allLogs = [];
+
+  // Load all weather entries for better chart visualization
+  for (let i = 0; i < count; i++) {
+    try {
+      const [city, condition, timestamp, reporter] = await contract.getWeatherByIndex(i);
+      const date = new Date(Number(timestamp) * 1000).toLocaleString();
+      allLogs.push({ city, condition, timestamp, date, reporter });
+    } catch (err) {
+      console.error(`❌ Failed to load log at index ${i}:`, err);
+    }
+  }
+
+  displayLogs(allLogs);
+  renderWeatherChart(allLogs);
+}
+
+function displayLogs(logs) {
+  const logsDiv = document.getElementById("weatherLogs");
+
+  if (logs.length === 0) {
+    logsDiv.innerHTML = '<div style="color: #a0aec0; text-align: center;">📭 No weather data submitted yet. Enter a city above to get started!</div>';
+    return;
+  }
+
+  logsDiv.innerHTML = '';
+  
+  const iconMap = {
+    Sunny: "01d",
+    Clear: "01d",
+    Clouds: "03d",
+    Rain: "09d",
+    Mist: "50d",
+    Thunderstorm: "11d"
+  };
+
+  // Display all logs or just the most recent one - keeping your original logic
+  const log = logs[logs.length - 1]; // Show most recent entry
+  const conditionParts = log.condition.split(' - ');
+  const baseCondition = conditionParts[0];
+  const icon = iconMap[baseCondition] || "01d";
+  const entry = document.createElement('div');
+  entry.className = 'log-entry';
+  entry.innerHTML = `
+    <img src="https://openweathermap.org/img/wn/${icon}@2x.png" alt="${baseCondition}">
+    <div>
+      <strong>${log.city}</strong> - ${log.condition}<br>
+      <small>${log.date}</small>
+    </div>
+  `;
+  logsDiv.appendChild(entry);
+}
+
+function filterLogs() {
+  const query = document.getElementById("filterInput").value.toLowerCase();
+  const filtered = allLogs.filter(log =>
+    log.city.toLowerCase().includes(query) || log.condition.toLowerCase().includes(query)
+  );
+  displayLogs(filtered);
+}
+
+function renderWeatherChart(logs) {
+  const ctx = document.getElementById("weatherChart").getContext("2d");
+
+  if (weatherChart) {
+    weatherChart.destroy();
+  }
+
+  if (logs.length === 0) {
+    weatherChart = new Chart(ctx, {
+      type: 'bar', // Bar chart type maintained
+      data: {
+        labels: [],
+        datasets: [{
+          label: 'Weather Condition Count',
+          data: [],
+          backgroundColor: 'rgba(54, 162, 235, 0.7)',
+          borderColor: 'rgba(54, 162, 235, 1)',
+          borderWidth: 1,
+          barPercentage: 0.6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        aspectRatio: 2.5,
+        plugins: {
+          legend: { display: false },
+          title: {
+            display: true,
+            text: 'Weather Condition Frequency',
+            color: '#e5e3e3',
+            font: { size: 16 },
+            padding: { top: 10, bottom: 20 }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: { color: '#e5e3e3', stepSize: 1 },
+            grid: { color: '#253243', drawBorder: false }
+          },
+          x: {
+            ticks: { color: '#e5e3e3' },
+            grid: { display: false }
+          }
+        },
+        layout: { padding: { top: 20, right: 20, bottom: 20, left: 20 } }
+      }
+    });
+    return;
+  }
+
+  // Count weather conditions for bar chart
+  const conditionCounts = {};
+  for (const log of logs) {
+    const baseCondition = log.condition.split(' - ')[0];
+    conditionCounts[baseCondition] = (conditionCounts[baseCondition] || 0) + 1;
+  }
+
+  weatherChart = new Chart(ctx, {
+    type: 'bar', // Bar chart type maintained
+    data: {
+      labels: Object.keys(conditionCounts),
+      datasets: [{
+        label: 'Weather Condition Count',
+        data: Object.values(conditionCounts),
+        backgroundColor: 'rgba(54, 162, 235, 0.7)',
+        borderColor: 'rgba(54, 162, 235, 1)',
+        borderWidth: 1,
+        barPercentage: 0.6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      aspectRatio: 2.5,
+      plugins: {
+        legend: { display: false },
+        title: {
+          display: true,
+          text: 'Weather Condition Frequency',
+          color: '#e5e3e3',
+          font: { size: 16 },
+          padding: { top: 10, bottom: 20 }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { color: '#e5e3e3', stepSize: 1 },
+          grid: { color: '#253243', drawBorder: false }
+        },
+        x: {
+          ticks: { color: '#e5e3e3' },
+          grid: { display: false }
+        }
+      },
+      layout: { padding: { top: 20, right: 20, bottom: 20, left: 20 } }
+    }
+  });
+}
+
+function initializeEmptyState() {
+  allLogs = [];
+  displayLogs(allLogs);
+  renderWeatherChart(allLogs);
+}
+
+window.addEventListener('load', async () => {
+  if (typeof window.ethereum !== 'undefined') {
+    console.log("✅ MetaMask detected");
+    try {
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      console.log("Connected account:", accounts[0]);
+      initializeEmptyState();
+    } catch (err) {
+      alert("❌ Failed to connect MetaMask");
+      console.error(err);
+    }
+  } else {
+    alert("🦊 Please install MetaMask to use this DApp!");
+  }
+});
+    // Set default background on page load
+    setDefaultBackground();
+  </script>
+</body>
+</html>

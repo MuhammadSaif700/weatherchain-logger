@@ -11,7 +11,7 @@ In summary, WeatherChain Logger offers a simple interface to log weather conditi
 
 ---
 
-## Features  
+## 🌟 Features  
 - **Real-time Weather Fetch:** Retrieves current weather data (e.g., temperature, humidity) from the [OpenWeatherMap API](https://openweathermap.org/api).  
 - **On-Chain Logging:** Stores each weather entry (city, temperature, humidity, timestamp) on the blockchain, creating an immutable record.  
 - **User Interface:** Interactive React frontend for selecting locations and viewing weather data.  
@@ -37,7 +37,7 @@ In summary, WeatherChain Logger offers a simple interface to log weather conditi
 
 ---
 
-## Getting Started  
+## 🚀 Getting Started  
 Follow these steps to run the app locally:  
 
 ### 1. Clone the repository  
@@ -83,7 +83,7 @@ npm start
 ```
 The React app will launch at http://localhost:3000. In your browser, ensure MetaMask is connected to the local network and use it to interact with the app.
 
-### Smart Contract Description
+### 📝 Smart Contract Description
 
 The smart contract WeatherLogger.sol is written in Solidity (e.g. pragma solidity ^0.8.0) and uses the MIT license. It defines a struct WeatherData containing fields like city, temperature, humidity, and timestamp. New weather records are stored in a public array (e.g., WeatherData[] public weatherLogs), and anyone can retrieve the history. A function such as logWeather(string memory city, uint256 temp, uint256 humid) lets a user add a new entry; it automatically captures block.timestamp. Because all data is on-chain, every entry is immutable once written. Here is a simplified snippet of the contract:
 
@@ -109,9 +109,9 @@ contract WeatherLogger {
 This contract is compiled and deployed via Hardhat, and the frontend uses Ethers.js to call logWeather. Each transaction is confirmed through MetaMask before the on-chain log is updated.
 ---
 
-## License
+## 📄 License
 
 This project is licensed under the **MIT License**. See the LICENSE file for details.
 
-## Credits/Author
+## 👤 Credits/Author
 Developed by **Muhammad Saif**.

@@ -38,26 +38,50 @@ Follow these steps to run the app locally:
 ```bash
 git clone https://github.com/YourUsername/WeatherChain-Logger.git  
 cd WeatherChain-Logger  
-2. Install dependencies
-npm install  
-3. Configure environment
-Create a .env file in the project root and add your OpenWeatherMap API key:
-REACT_APP_WEATHER_API_KEY=YOUR_OPENWEATHERMAP_API_KEY  
-4. Start Hardhat network
-npx hardhat node  
-Note the private keys for test accounts in the terminal output.
+```
 
+### 2. Install dependencies
+```bash
+npm install  
+```
+
+### 3. Configure environment:
+
+Create a .env file in the project root and add your OpenWeatherMap API key:
+```ini
+REACT_APP_WEATHER_API_KEY=YOUR_OPENWEATHERMAP_API_KEY 
+```
+
+### 4. Start Hardhat network
+```bash
+npx hardhat node
+```
+Note the private keys for test accounts in the terminal output.
 In MetaMask, add a new network with RPC URL http://127.0.0.1:8545 (Hardhat default) and import one of the provided keys.
-5. Deploy the smart contract
+
+### 5. Deploy the smart contract:
+
 In a new terminal (with Hardhat node running):
-npx hardhat run scripts/deploy.js --network localhost  
-6. Run the frontend
-cd frontend  
-npm start  
-cd frontend  
-npm start  
-Smart Contract
-The WeatherLogger.sol contract (MIT licensed) stores weather data on-chain:
+```bash
+npx hardhat run scripts/deploy.js --network localhost
+```
+This will deploy the WeatherLogger contract to your local Hardhat network.
+
+
+### 6. Run the frontend:
+
+Open another terminal and navigate to the frontend directory:
+```bash
+cd frontend
+npm start
+```
+The React app will launch at http://localhost:3000. In your browser, ensure MetaMask is connected to the local network and use it to interact with the app.
+
+### Smart Contract Description
+
+The smart contract WeatherLogger.sol is written in Solidity (e.g. pragma solidity ^0.8.0) and uses the MIT license. It defines a struct WeatherData containing fields like city, temperature, humidity, and timestamp. New weather records are stored in a public array (e.g., WeatherData[] public weatherLogs), and anyone can retrieve the history. A function such as logWeather(string memory city, uint256 temp, uint256 humid) lets a user add a new entry; it automatically captures block.timestamp. Because all data is on-chain, every entry is immutable once written. Here is a simplified snippet of the contract:
+
+```solidity
 // SPDX-License-Identifier: MIT  
 pragma solidity ^0.8.0;  
 
@@ -75,16 +99,13 @@ contract WeatherLogger {
         weatherLogs.push(WeatherData(city, temp, humid, block.timestamp));  
     }  
 }  
-License
-MIT License. See LICENSE for details.
-Credits
-Developed by Muhammad Saif.
+```
+This contract is compiled and deployed via Hardhat, and the frontend uses Ethers.js to call logWeather. Each transaction is confirmed through MetaMask before the on-chain log is updated.
+---
 
-References
-React Documentation
+## License
 
-Hardhat Documentation
+**MIT License**. See LICENSE for details.
 
-MetaMask
-
-OpenWeatherMap API
+## Credits
+Developed by **Muhammad Saif**.

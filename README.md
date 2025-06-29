@@ -51,21 +51,14 @@ cd WeatherChain-Logger
 npm install  
 ```
 
-### 3. Configure environment:
-
-Create a .env file in the project root and add your OpenWeatherMap API key:
-```ini
-REACT_APP_WEATHER_API_KEY=YOUR_OPENWEATHERMAP_API_KEY 
-```
-
-### 4. Start Hardhat network
+### 3. Start Hardhat network
 ```bash
 npx hardhat node
 ```
 Note the private keys for test accounts in the terminal output.
 In MetaMask, add a new network with RPC URL http://127.0.0.1:8545 (Hardhat default) and import one of the provided keys.
 
-### 5. Deploy the smart contract:
+### 4. Deploy the smart contract:
 
 In a new terminal (with Hardhat node running):
 ```bash
@@ -74,7 +67,7 @@ npx hardhat run scripts/deploy.js --network localhost
 This will deploy the WeatherLogger contract to your local Hardhat network.
 
 
-### 6. Run the frontend:
+### 5. Run the frontend:
 
 Open another terminal and navigate to the frontend directory:
 ```bash

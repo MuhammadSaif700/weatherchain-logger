@@ -21,13 +21,19 @@ In summary, WeatherChain Logger offers a simple interface to log weather conditi
 
 ---
 
-## Tech Stack  
-- **Frontend:** React ([docs](https://legacy.reactjs.org/))  
-- **Smart Contracts:** Solidity  
-- **Ethereum Development:** Hardhat ([docs](https://hardhat.org/)), Ethers.js  
-- **Weather Data:** [OpenWeatherMap API](https://openweathermap.org/api)  
-- **Wallet:** MetaMask  
-- **Backend:** Node.js, npm  
+## 🛠️ Tech Stack
+
+- **Frontend:**
+  - **HTML/CSS:** Custom styles and TailwindCSS for utility classes
+  - **JavaScript:** Vanilla JS for all logic and DOM manipulation
+  - **Chart.js:** For rendering weather charts
+  - **OpenWeatherMap API:** For live weather and city autocomplete
+  - **MetaMask:** For wallet connection and blockchain interaction
+  - **Ethers.js:** For interacting with the Ethereum smart contract
+- **Smart Contract:**
+  - **Solidity:** Not shown here, but implied by the ABI and contract interaction
+  - **Deployed on Ethereum testnet or local blockchain:** (e.g., Hardhat, Ganache)
+
 
 ---
 

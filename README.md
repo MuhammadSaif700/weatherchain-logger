@@ -105,7 +105,7 @@ This contract is compiled and deployed via Hardhat, and the frontend uses Ethers
 
 ## License
 
-**MIT License**. See LICENSE for details.
+This project is licensed under the **MIT License**. See the LICENSE file for details.
 
-## Credits
+## Credits/Author
 Developed by **Muhammad Saif**.

@@ -71,8 +71,7 @@ This will deploy the WeatherLogger contract to your local Hardhat network.
 
 Open another terminal and navigate to the frontend directory:
 ```bash
-cd frontend
-npm start
+npx serve frontend
 ```
 The React app will launch at http://localhost:3000. In your browser, ensure MetaMask is connected to the local network and use it to interact with the app.
 
